@@ -1,0 +1,116 @@
+##Veri Ureterek Analiz
+#Rastgele veri oluşturma için kütüphane
+install.packages("MASS")
+library(MASS)
+
+
+# Poisson dağılımına uygun veri seti oluşturma
+lambda <- 3 # Poisson dağılımın lambda parametresi
+veri_seti <- rpois(365, lambda)
+
+# Rastgele olarak 10 veri noktasını NA yapalım
+set.seed(123)  # Çalışmanın tekrarlanabilirliği için seed ayarlayalım
+eksik_indexler <- sample(1:365, 10)
+veri_seti[eksik_indexler] <- NA
+
+# Veri setindeki eksik verileri kontrol etme
+if (any(is.na(veri_seti))) {
+  print("Eksik veri bulundu.")
+} else {
+  print("Eksik veri bulunamadı.")
+}
+
+
+# Oluşturduğumuz veri setini görüntüleme
+print(veri_seti)
+
+# Oluşturduğumuz veri setini bir veri çerçevesine dönüştürme
+veri_seti_df <- data.frame(Gozlem = 1:365, Sayi = veri_seti)
+
+# Eksik verileri ortalama ile dolduralım
+ortalama <- mean(veri_seti, na.rm = TRUE)  # NA olmayan verilerin ortalamasını alalım
+veri_seti[is.na(veri_seti)] <- ortalama  # NA olan noktaları ortalama ile dolduralım
+
+# Veri çerçevesini görüntüleme
+print(veri_seti)
+
+
+# Oluşturduğumuz veri setinin özet istatistiklerini görelim
+summary(veri_seti)
+
+
+# Veri setiyle bir kutu grafiği oluşturalım
+boxplot(veri_seti, main = "Poisson Dağılımına Uyan Veri Seti", ylab = "Değerler")
+
+
+# Z puanını hesaplamak için fonksiyon oluşturalım
+z_puanlari <- (veri_seti - mean(veri_seti)) / sd(veri_seti)
+
+# Oluşturduğumuz Z puanlarını görüntüleyelim
+print(z_puanlari)
+
+# Veri setinin çeyrekler arası aralığını hesaplayalım
+Q1 <- quantile(veri_seti, 0.25)
+Q3 <- quantile(veri_seti, 0.75)
+IQR <- Q3 - Q1
+
+# Aykırı değer sınırlarını belirleyelim
+alt_sinir <- Q1 - 1.5 * IQR
+ust_sinir <- Q3 + 1.5 * IQR
+
+# Aykırı değerleri tespit edelim
+aykirilar <- veri_seti[veri_seti < alt_sinir | veri_seti > ust_sinir]
+
+# Aykırı değerleri görüntüleyelim
+print(aykirilar)
+
+# Veri setinin histogramını oluşturalım
+hist(veri_seti, main = "Poisson Dağılımına Uyan Veri Seti Histogramı", xlab = "Değerler", ylab = "Frekans")
+
+
+
+
+## 2) Veri Çekerek Analiz
+#SASA Hissesinin iki yıllık fiyatlarının analiz edilmesi
+
+#Önce verimizi görüntüleyelim
+#Verinin görüntülenmesi
+View(SASA)
+names(SASA)
+
+# Veri setinin yapısını görüntüleyelim
+str(SASA)
+
+# Tarih sütununu Date formatına dönüştürelim
+SASA$Tarih <- as.Date(SASA$Tarih, format = "%d-%m-%Y")
+
+# Kapanis_TL sütunununun yreklikler ile IQR hesaplayalım
+Q1 <- quantile(SASA$Kapanis_TL, 0.25)
+Q3 <- quantile(SASA$Kapanis_TL, 0.75)
+IQR <- Q3 - Q1
+
+# Sonuçları görüntüleme
+print(Q1)
+print(Q3)
+print(IQR)
+
+
+# Aykırı değer sınırlarını belirleyelim
+alt_sinir <- Q1 - 1.5 * IQR
+ust_sinir <- Q3 + 1.5 * IQR
+
+# Aykırı değerleri tespit edelim
+aykirilar <- SASA[SASA$Kapanis_TL < alt_sinir | SASA$Kapanis_TL > ust_sinir, ]
+
+# Aykırı değerleri görüntüleyelim
+print(aykirilar)
+
+# SASA veri setinin kutu grafiğini oluşturalım
+
+boxplot(SASA, main = "SASA Veri Seti Kutu Grafiği")
+
+
+
+# Histogram oluşturma
+
+hist(SASA$Kapanis_TL, main = "SASA Veri Seti Kapanış(TL) Histogramı", xlab = "Kapanış(TL)", ylab = "Frekans")
